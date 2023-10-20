@@ -1,0 +1,19 @@
+{
+  "name": "forkify-app",
+  "version": "1.0.0",
+  "description": "recipy listers",
+  "scripts": {
+    "start": "parcel index.html",
+    "build": "parcel build index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "forkify-app"
+  },
+  "author": "Taiwo Ipadeola",
+  "license": "ISC",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.10.0",
+    "parcel": "^2.10.0"
+  }
+}

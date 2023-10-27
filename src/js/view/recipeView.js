@@ -1,77 +1,24 @@
 import icons from '../../img/icons.svg';
 import { Fraction } from 'fractional';
+import View from './view';
 
-class RecipeView {
-  #parentEl = document.querySelector('.recipe');
-  #data;
-  #error = 'We could not find that recipe. Please try another one';
-  #successMessage = '';
-
-  render(data) {
-    this.#data = data;
-    const markUp = this.#generateMarkUp();
-    this.#clear();
-    this.#parentEl.insertAdjacentHTML('afterbegin', markUp);
-  }
-
-  #clear() {
-    this.#parentEl.innerHTML = '';
-  }
-
-  renderError(message = this.#error) {
-    const markUp = ` 
-          <div class="error">
-            <div>
-              <svg>
-                <use href="${icons}#icon-alert-triangle"></use>
-              </svg>
-            </div>
-            <p>${message}</p>
-          </div>
-    `;
-    this.#clear();
-    this.#parentEl.insertAdjacentHTML('afterbegin', markUp);
-  }
-
-  renderSuccessMessage(message = this.#error) {
-    const markUp = ` 
-           <div class="message">
-          <div>
-            <svg>
-              <use href="${icons}#icon-smile"></use>
-            </svg>
-          </div>
-          <p>${this.successMessage}</p>
-        </div>
-    `;
-    this.#clear();
-    this.#parentEl.insertAdjacentHTML('afterbegin', markUp);
-  }
-
-  renderSpinner() {
-    const html = `
-        <div class="spinner">
-          <svg>
-            <use href="${icons}#icon-loader"></use>
-          </svg>
-        </div>
-  `;
-    this.#clear();
-    this.#parentEl.insertAdjacentHTML('afterbegin', html);
-  }
+class RecipeView extends View {
+  _parentEl = document.querySelector('.recipe');
+  _error = 'We could not find that recipe. Please try another one';
+  _successMessage = '';
 
   addRender(render) {
     ['hashchange', 'load'].forEach(ev => window.addEventListener(ev, render));
   }
 
-  #generateMarkUp() {
+  _generateMarkUp() {
     return `
   <figure class="recipe__fig">
-          <img src="${this.#data.imageUrl}" alt="${
-      this.#data.title
+          <img src="${this._data.imageUrl}" alt="${
+      this._data.title
     }" class="recipe__img" />
           <h1 class="recipe__title">
-            <span>${this.#data.title}</span>
+            <span>${this._data.title}</span>
           </h1>
         </figure>
 
@@ -81,7 +28,7 @@ class RecipeView {
               <use href="${icons}#icon-clock"></use>
             </svg>
             <span class="recipe__info-data recipe__info-data--minutes">${
-              this.#data.cookingTime
+              this._data.cookingTime
             }</span>
             <span class="recipe__info-text">minutes</span>
           </div>
@@ -90,7 +37,7 @@ class RecipeView {
               <use href="${icons}#icon-users"></use>
             </svg>
             <span class="recipe__info-data recipe__info-data--people">${
-              this.#data.servings
+              this._data.servings
             }</span>
             <span class="recipe__info-text">servings</span>
 
@@ -109,9 +56,7 @@ class RecipeView {
           </div>
 
           <div class="recipe__user-generated">
-            <svg>
-              <use href="${icons}#icon-user"></use>
-            </svg>
+             
           </div>
           <button class="btn--round">
             <svg class="">
@@ -123,7 +68,7 @@ class RecipeView {
         <div class="recipe__ingredients">
           <h2 class="heading--2">Recipe ingredients</h2>
           <ul class="recipe__ingredient-list">
-            ${this.#data.ingredients.map(this.#generateIngredient).join('')}
+            ${this._data.ingredients.map(this._generateIngredient).join('')}
           </ul>
         </div>
 
@@ -132,13 +77,13 @@ class RecipeView {
           <p class="recipe__directions-text">
             This recipe was carefully designed and tested by
             <span class="recipe__publisher">${
-              this.#data.publilsher
+              this._data.publilsher
             }</span>. Please check out
             directions at their website.
           </p>
           <a
             class="btn--small recipe__btn"
-            href="${this.#data.sourceURL}"
+            href="${this._data.sourceURL}"
             target="_blank"
           >
             <span>Directions</span>
@@ -150,7 +95,7 @@ class RecipeView {
   `;
   }
 
-  #generateIngredient(ing) {
+  _generateIngredient(ing) {
     return `<li class="recipe__ingredient">
                 <svg class="recipe__icon">
                   <use href="${icons}#icon-check"></use>

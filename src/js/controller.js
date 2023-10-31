@@ -8,6 +8,7 @@ import 'core-js/stable';
 import 'regenerator-runtime/runtime';
 import resultView from './view/resultView.js';
 import paginationView from './view/paginationView.js';
+import bookmarksView from './view/bookmarksView.js';
 
 // https://forkify-api.herokuapp.com/v2
 
@@ -27,6 +28,9 @@ const controlRecipe = async () => {
     //update result view to mark selected background color
     resultView.update(model.getResultPerPage());
 
+    // update bookmark
+    bookmarksView.update(model.state.bookmarks);
+
     // load data
     await model.loadRecipe(id);
     // const { recipe } = model.state;
@@ -35,6 +39,7 @@ const controlRecipe = async () => {
     recipeView.render(model.state.recipe);
   } catch (error) {
     recipeView.renderError();
+    console.error(error);
   }
 };
 
@@ -80,10 +85,28 @@ const controlServings = function (newServings) {
   recipeView.update(model.state.recipe);
 };
 
+const controlBookmark = function () {
+  // add or remove bookmark
+  if (!model.state.recipe.bookmarked) model.addBookmark(model.state.recipe);
+  else model.deleteBookmark(model.state.recipe.id);
+
+  // update boomark
+  recipeView.update(model.state.recipe);
+
+  //render bookmark in bookmark session
+  bookmarksView.render(model.state.bookmarks);
+};
+
+const controlBookmarks = function () {
+  bookmarksView.render(model.state.bookmarks);
+};
+
 const init = () => {
   recipeView.addRender(controlRecipe);
   recipeView.addHandleUpdateServings(controlServings);
+  recipeView.addHandlerAddBookmark(controlBookmark);
   searchView.addSearchResult(controlSearchResult);
   paginationView.addHandleClick(paginationHandle);
+  bookmarksView.addHandleBookMark(controlBookmarks);
 };
 init();

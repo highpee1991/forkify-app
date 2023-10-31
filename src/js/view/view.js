@@ -3,17 +3,16 @@ import icons from '../../img/icons.svg';
 export default class View {
   _data;
 
-  render(data) {
+  render(data, render = true) {
     this._data = data;
     const markUp = this._generateMarkUp();
+
+    if (!render) return markUp;
     this._clear();
     this._parentEl.insertAdjacentHTML('afterbegin', markUp);
   }
 
   update(data) {
-    if (!data || (Array.isArray(data) && data.length === 0))
-      return this.renderError();
-
     this._data = data;
     const newMarkUp = this._generateMarkUp();
 
@@ -23,23 +22,20 @@ export default class View {
 
     newElement.forEach((newEl, i) => {
       const curE = curElement[i];
-      console.log(curE, newEl.isEqualNode(curE));
       // Update chnaged Text
       if (
         !newEl.isEqualNode(curE) &&
-        newEl.firstChild.nodeValue.trim() !== ''
+        newEl.firstChild?.nodeValue.trim() !== ''
       ) {
         curE.textContent = newEl.textContent;
       }
 
       // update Chnaged Atributes
 
-      if (!newEl.isEqualNode(curE)) {
-        console.log(Array.from(newEl.attributes));
+      if (!newEl.isEqualNode(curE))
         Array.from(newEl.attributes).forEach(attr =>
           curE.setAttribute(attr.name, attr.value)
         );
-      }
     });
   }
 

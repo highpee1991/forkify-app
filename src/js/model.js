@@ -27,7 +27,7 @@ export const loadRecipe = async id => {
       sourceURL: recipe.source_url,
       title: recipe.title,
     };
-    // console.log(state.recipe);
+    console.log(state.recipe);
   } catch (error) {
     throw error;
   }
@@ -57,4 +57,13 @@ export const getResultPerPage = (page = state.search.page) => {
   const end = page * state.search.resultPerPage; //10
 
   return state.search.result.slice(start, end);
+};
+
+export const updateServings = function (newServings) {
+  state.recipe.ingredients.forEach(ing => {
+    ing.quantity = (ing.quantity * newServings) / state.recipe.servings;
+    // newQt = oldQt * newServings / oldServings // 2 * 8 / 4 = 4
+  });
+
+  state.recipe.servings = newServings;
 };

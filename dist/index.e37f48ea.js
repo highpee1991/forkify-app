@@ -596,6 +596,8 @@ const controlRecipe = async ()=>{
         const id = window.location.hash.slice(1);
         if (!id) return;
         (0, _recipeViewJsDefault.default).renderSpinner();
+        //update result view to mark selected background color
+        (0, _resultViewJsDefault.default).update(_modelJs.getResultPerPage());
         // load data
         await _modelJs.loadRecipe(id);
         // const { recipe } = model.state;
@@ -631,8 +633,16 @@ const paginationHandle = (goto)=>{
     // render new pagination view
     (0, _paginationViewJsDefault.default).render(_modelJs.state.search);
 };
+const controlServings = function(newServings) {
+    // Update the recipe servings (in state)
+    _modelJs.updateServings(newServings);
+    // Update the recipe view
+    // recipeView.render(model.state.recipe);
+    (0, _recipeViewJsDefault.default).update(_modelJs.state.recipe);
+};
 const init = ()=>{
     (0, _recipeViewJsDefault.default).addRender(controlRecipe);
+    (0, _recipeViewJsDefault.default).addHandleUpdateServings(controlServings);
     (0, _searchViewJsDefault.default).addSearchResult(controlSearchResult);
     (0, _paginationViewJsDefault.default).addHandleClick(paginationHandle);
 };
@@ -2474,6 +2484,7 @@ parcelHelpers.export(exports, "state", ()=>state);
 parcelHelpers.export(exports, "loadRecipe", ()=>loadRecipe);
 parcelHelpers.export(exports, "loadSearchResult", ()=>loadSearchResult);
 parcelHelpers.export(exports, "getResultPerPage", ()=>getResultPerPage);
+parcelHelpers.export(exports, "updateServings", ()=>updateServings);
 var _regeneratorRuntime = require("regenerator-runtime");
 var _config = require("./config");
 var _helper = require("./helper");
@@ -2500,7 +2511,7 @@ const loadRecipe = async (id)=>{
             sourceURL: recipe.source_url,
             title: recipe.title
         };
-    // console.log(state.recipe);
+        console.log(state.recipe);
     } catch (error) {
         throw error;
     }
@@ -2526,6 +2537,13 @@ const getResultPerPage = (page = state.search.page)=>{
     const start = (page - 1) * state.search.resultPerPage; //0
     const end = page * state.search.resultPerPage; //10
     return state.search.result.slice(start, end);
+};
+const updateServings = function(newServings) {
+    state.recipe.ingredients.forEach((ing)=>{
+        ing.quantity = ing.quantity * newServings / state.recipe.servings;
+    // newQt = oldQt * newServings / oldServings // 2 * 8 / 4 = 4
+    });
+    state.recipe.servings = newServings;
 };
 
 },{"regenerator-runtime":"dXNgZ","./config":"k5Hzs","./helper":"lVRAz","@parcel/transformer-js/src/esmodule-helpers.js":"gkKU3"}],"k5Hzs":[function(require,module,exports) {
@@ -2613,6 +2631,16 @@ class RecipeView extends (0, _viewDefault.default) {
             "load"
         ].forEach((ev)=>window.addEventListener(ev, render));
     }
+    addHandleUpdateServings(handler) {
+        this._parentEl.addEventListener("click", (e)=>{
+            const btn = e.target.closest(".btn--update-servings");
+            if (!btn) return;
+            console.log(btn);
+            const updateTo = Number(btn.dataset.updateTo);
+            console.log(updateTo);
+            if (updateTo > 0) handler(updateTo);
+        });
+    }
     _generateMarkUp() {
         return `
   <figure class="recipe__fig">
@@ -2638,12 +2666,12 @@ class RecipeView extends (0, _viewDefault.default) {
             <span class="recipe__info-text">servings</span>
 
             <div class="recipe__info-buttons">
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings - 1}">
                 <svg>
                   <use href="${0, _iconsSvgDefault.default}#icon-minus-circle"></use>
                 </svg>
               </button>
-              <button class="btn--tiny btn--increase-servings">
+              <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings + 1}">
                 <svg>
                   <use href="${0, _iconsSvgDefault.default}#icon-plus-circle"></use>
                 </svg>
@@ -3002,11 +3030,29 @@ var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
 class View {
     _data;
     render(data) {
-        if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
         this._data = data;
         const markUp = this._generateMarkUp();
         this._clear();
         this._parentEl.insertAdjacentHTML("afterbegin", markUp);
+    }
+    update(data) {
+        if (!data || Array.isArray(data) && data.length === 0) return this.renderError();
+        this._data = data;
+        const newMarkUp = this._generateMarkUp();
+        const newDOm = document.createRange().createContextualFragment(newMarkUp);
+        const newElement = Array.from(newDOm.querySelectorAll("*"));
+        const curElement = Array.from(this._parentEl.querySelectorAll("*"));
+        newElement.forEach((newEl, i)=>{
+            const curE = curElement[i];
+            console.log(curE, newEl.isEqualNode(curE));
+            // Update chnaged Text
+            if (!newEl.isEqualNode(curE) && newEl.firstChild.nodeValue.trim() !== "") curE.textContent = newEl.textContent;
+            // update Chnaged Atributes
+            if (!newEl.isEqualNode(curE)) {
+                console.log(Array.from(newEl.attributes));
+                Array.from(newEl.attributes).forEach((attr)=>curE.setAttribute(attr.name, attr.value));
+            }
+        });
     }
     _clear() {
         this._parentEl.innerHTML = "";
@@ -3090,9 +3136,10 @@ class resultView extends (0, _viewDefault.default) {
         return this._data.map(this._loopSearchResult).join("");
     }
     _loopSearchResult(res) {
+        const id = window.location.hash.slice(1);
         return `
           <li class="preview">
-            <a class="preview__link" href="#${res.id}">
+            <a class="preview__link ${res.id === id ? "preview__link--active" : ""}" href="#${res.id}">
               <figure class="preview__fig">
                 <img src="${res.imageUrl}" alt="${res.title}" />
               </figure>

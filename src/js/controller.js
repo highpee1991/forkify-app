@@ -23,6 +23,10 @@ const controlRecipe = async () => {
     if (!id) return;
 
     recipeView.renderSpinner();
+
+    //update result view to mark selected background color
+    resultView.update(model.getResultPerPage());
+
     // load data
     await model.loadRecipe(id);
     // const { recipe } = model.state;
@@ -67,8 +71,18 @@ const paginationHandle = goto => {
   paginationView.render(model.state.search);
 };
 
+const controlServings = function (newServings) {
+  // Update the recipe servings (in state)
+  model.updateServings(newServings);
+
+  // Update the recipe view
+  // recipeView.render(model.state.recipe);
+  recipeView.update(model.state.recipe);
+};
+
 const init = () => {
   recipeView.addRender(controlRecipe);
+  recipeView.addHandleUpdateServings(controlServings);
   searchView.addSearchResult(controlSearchResult);
   paginationView.addHandleClick(paginationHandle);
 };
